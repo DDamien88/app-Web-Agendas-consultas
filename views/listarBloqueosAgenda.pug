@@ -1,0 +1,35 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet", href="/styles.css")
+    title Lista de Bloqueos de Agenda
+  body
+    a(href="/dashboard") Menú principal
+    br  
+    a(href="/agendas/bloqueos-agendas") Crear bloqueo de agenda
+    h1 Lista de Bloqueos de Agenda
+
+    table
+      thead
+        tr
+          th Médico
+          th Sucursal
+          th Número Agenda
+          th Fecha Inicio
+          th Fecha Fin
+          th Motivo
+          th Acciones
+      tbody
+        each bloqueo in bloqueos
+          tr
+            td #{bloqueo.nombreMedico || 'Sin médico'}
+            td #{bloqueo.nombreSucursal || 'Sin sucursal'}
+            td #{bloqueo.idAgenda || 'Sin agenda'}
+            td #{bloqueo.fechaInicio ? new Date(bloqueo.fechaInicio).toLocaleDateString('es-ES') : 'Sin fecha'}
+            td #{bloqueo.fechaFin ? new Date(bloqueo.fechaFin).toLocaleDateString('es-ES') : 'Sin fecha'}
+            td #{bloqueo.motivo || 'Sin motivo'}
+            td
+              form(action=`/agendas/bloqueos-agenda/eliminar/${bloqueo.idBloqueo}` method="POST")
+                button.btn.btn-danger(type="submit") Eliminar

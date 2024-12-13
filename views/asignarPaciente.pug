@@ -1,0 +1,11 @@
+doctype html
+html
+    head
+        title Asignar Paciente
+    body
+        h1 Asignar Paciente al Turno #{idTurno}
+        form(action=`/turnos/asignarPaciente/${idTurno}`, method='POST')
+            select(name='idPaciente')
+                each paciente in pacientes
+                    option(value=paciente.idPaciente) #{paciente.nombreCompleto}
+            button(type='submit') Asignar Paciente

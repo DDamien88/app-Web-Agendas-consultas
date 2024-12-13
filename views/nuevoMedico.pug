@@ -1,0 +1,65 @@
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no")
+        title Crear Nuevo Médico
+        link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css")
+        style.
+            .required-field::after {
+                content: " *";
+                color: red;
+            }
+            .form-control:invalid {
+                border-color: red;
+            }
+            .form-control:valid {
+                border-color: green;
+            }
+    body
+        .container.mt-5
+            .card.shadow-sm
+                .card-header.bg-primary.text-white.text-center
+                    h1 Crear Nuevo Médico
+                    p.mb-0.text-white Todos los campos marcados con * son obligatorios.
+
+                .card-body
+                    form(action="/medicos", method="POST" id="medico-form")
+                        .mb-3
+                            label(for="nombre" class="required-field") Nombre completo:
+                            input(type="text" class="form-control" id="nombre" name="nombre" placeholder="Ingrese el nombre completo" required)
+                        .mb-3
+                            label(for="idEspecialidad" class="required-field") Especialidad:
+                            select(class="form-control" id="idEspecialidad" name="idEspecialidad" required)
+                                option(value="" selected disabled) Seleccione una especialidad
+                                each especialidad in especialidades
+                                    option(value=especialidad.idEspecialidad) #{especialidad.nombreEspecialidad}
+                        .mb-3
+                            label(for="nroMatricula" class="required-field") Matrícula:
+                            input(type="text" class="form-control" id="nroMatricula" name="nroMatricula" placeholder="Ingrese el N° de matrícula" required)
+                        .mb-3
+                            label(for="telefono" class="required-field") Teléfono:
+                            input(type="text" class="form-control" id="telefono" name="telefono" placeholder="Ej: 2664000000" required)
+                        .mb-3
+                            label(for="email" class="required-field") Email:
+                            input(type="email" class="form-control" id="email" name="email" placeholder="correo@ejemplo.com" required)
+                        .mb-3
+                            label(for="ciudad" class="required-field") Ciudad donde reside:
+                            input(type="text" class="form-control" id="ciudad" name="ciudad" placeholder="Ej: San Luis" required)
+                        .mb-3
+                            label(for="dniMedico" class="required-field") DNI:
+                            input(type="text" class="form-control" id="dniMedico" name="dniMedico" placeholder="8 dígitos" required)
+                            small.text-muted Debe contener exactamente 8 dígitos.
+                        .mb-3
+                            label(for="username" class="required-field") Nombre de usuario:
+                            input(type="text" class="form-control" id="username" name="username" placeholder="Ingrese un nombre único" required)
+                        .mb-3
+                            label(for="password" class="required-field") Contraseña:
+                            input(type="password" class="form-control" id="password" name="password" placeholder="Ingrese una contraseña" required)
+                        .mb-3
+                            label(for="idSucursal" class="required-field") Sucursal:
+                            select(class="form-control" id="idSucursal" name="idSucursal" required)
+                                option(value="1") San Luis
+                                option(value="2") Villa Mercedes
+
+                        button(type="submit" class="btn btn-primary w-100 mt-3") Crear Médico

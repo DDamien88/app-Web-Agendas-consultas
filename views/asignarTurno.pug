@@ -1,0 +1,27 @@
+doctype html
+html(lang="es")
+    head
+        title Asignar Turno
+        link(rel="stylesheet", href="/styles.css")
+    body
+        h2 Asignar Turno
+            form(action="/turnos/asignar", method="POST")
+                input(type="hidden", name="idMedico", value=idMedico)
+
+                label(for="idPaciente") Seleccionar Paciente
+                select(name="idPaciente", required)
+                    option(value="") Seleccione un paciente
+                    if pacientes && pacientes.length > 0
+                        each paciente in pacientes
+                            option(value=paciente.idPaciente) #{paciente.nombreCompleto}
+                    else
+                        option(value="") No hay pacientes disponibles
+
+                label(for="fecha") Fecha
+                input(type="date", name="fecha", required)
+
+                label(for="hora") Hora
+                input(type="time", name="hora", required)
+
+                button(type="submit") Asignar Turno
+

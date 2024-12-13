@@ -1,0 +1,139 @@
+// planificarAgenda.pug
+doctype html
+html(lang="es")
+  head
+    title Planificar Horarios
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+  body
+    .container
+      if success
+        .alert.alert-success #{success}
+      if error
+        .alert.alert-danger #{error}
+
+      h1.text-center.mt-4 Planificación / Una Agenda por especialidad
+      p.text-danger * Campos Obligatorios
+      form(action="/horarios/planificar" method="post")
+        .form-group
+          label(for="idSucursal") Seleccionar Sucursal *
+          select.form-control(name="idSucursal" id="idSucursal" required)
+            option(value="" disabled selected) Selecciona una sucursal
+            each sucursal in sucursales
+              option(value=sucursal.idSucursal) #{sucursal.nombre}
+
+        .form-group
+          label(for="idEspecialidad") Seleccionar Especialidad *
+          select.form-control(name="idEspecialidad" id="idEspecialidad" required disabled)
+            option(value="" disabled selected) Selecciona una especialidad
+
+        .form-group
+          label(for="idMedico") Seleccionar Médico *
+          select.form-control(name="idMedico" id="idMedico" required disabled)
+            option(value="" disabled selected) Selecciona un médico
+
+        .form-group
+          label(for="fecha") Fecha en la que inicia ésta agenda *
+          input.form-control(type="date" name="fecha" required)
+
+
+        .form-group
+          label Horarios por Día de la Semana (Según corresponda)
+        each dia, idx in ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+          .form-group
+            h5 #{dia}
+            .form-row
+              .col
+                label(for=`horaInicioManana${idx}`) Hora Inicio Mañana
+                input.form-control(type="time", name=`horarios[${idx}][horaInicioManana]`, id=`horaInicioManana${idx}`)
+              .col
+                label(for=`horaFinManana${idx}`) Hora Fin Mañana
+                input.form-control(type="time", name=`horarios[${idx}][horaFinManana]`, id=`horaFinManana${idx}`)
+              .col
+                label(for=`horaInicioTarde${idx}`) Hora Inicio Tarde
+                input.form-control(type="time", name=`horarios[${idx}][horaInicioTarde]`, id=`horaInicioTarde${idx}`)
+              .col
+                label(for=`horaFinTarde${idx}`) Hora Fin Tarde
+                input.form-control(type="time", name=`horarios[${idx}][horaFinTarde]`, id=`horaFinTarde${idx}`)
+
+        .form-group
+          label(for="duracion") Duración de Turnos (en minutos) *
+          input.form-control(type="number", name="duracion", min="1", required)
+        .form-group
+          label(for="cantSobreTurnos") Cantidad de sobre turnos *
+          input.form-control(type="number", name="cantSobreTurnos", min="1", required)
+        .form-group
+          label(for="dias") Duración de la agenda (Expresar en días)*
+          input.form-control(type="number", name="dias", min="1", required)
+
+        button.btn.btn-primary.mb-4(type="submit") Generar Horarios
+
+    script.
+      document.getElementById('idSucursal').addEventListener('change', function () {
+          const idSucursal = this.value;
+          const especialidadSelect = document.getElementById('idEspecialidad');
+          const medicoSelect = document.getElementById('idMedico');
+
+          // Limpia los select dependientes
+          especialidadSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+          especialidadSelect.disabled = true;
+          medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+          medicoSelect.disabled = true;
+
+          // Fetch de especialidades
+          fetch(`/horarios/especialidades?sucursal=${idSucursal}`)
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error(`Error HTTP: ${response.status}`);
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  especialidadSelect.innerHTML = '<option value="" disabled selected>Selecciona una especialidad</option>';
+                  especialidadSelect.disabled = false;
+
+                  // Rellenar el select con las especialidades
+                  data.forEach(especialidad => {
+                      const option = document.createElement('option');
+                      option.value = especialidad.idEspecialidad;
+                      option.textContent = especialidad.nombreEspecialidad;
+                      especialidadSelect.appendChild(option);
+                  });
+              })
+              .catch(error => {
+                  console.error('Error al cargar especialidades:', error);
+                  especialidadSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+              });
+      });
+
+      // Filtro de médicos por sucursal y especialidad
+      document.getElementById('idEspecialidad').addEventListener('change', function () {
+          const idSucursal = document.getElementById('idSucursal').value;
+          const idEspecialidad = this.value;
+          const medicoSelect = document.getElementById('idMedico');
+
+          // Limpia el select dependiente
+          medicoSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+          medicoSelect.disabled = true;
+
+          // Fetch de médicos
+          fetch(`/horarios/medicos?sucursal=${idSucursal}&especialidad=${idEspecialidad}`)
+              .then(response => response.json())
+              .then(data => {
+                  medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+                  medicoSelect.disabled = false;
+
+                  // Rellenar el select con los médicos
+                  data.forEach(medico => {
+                      const option = document.createElement('option');
+                      option.value = medico.idMedico;
+                      option.textContent = medico.nombre;
+                      medicoSelect.appendChild(option);
+                  });
+              })
+              .catch(error => {
+                  console.error('Error al cargar médicos:', error);
+                  medicoSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+              });
+      });
+

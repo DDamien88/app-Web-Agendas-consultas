@@ -1,0 +1,70 @@
+// login.pug
+doctype html
+html(lang="es")
+  head
+    title Iniciar Sesión
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    link(rel="stylesheet", href="/styles.css")
+    link(rel="icon" href="/icono.png" type="image/x-icon")
+    style.
+      body {
+        background-image: url('https://plus.unsplash.com/premium_photo-1667143327560-ac86c2b8afa6?q=80&w=2040&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+        background-size: cover;
+        background-position: center;
+      }
+      .login-container {
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+  body
+    .container.d-flex.align-items-center.justify-content-center.min-vh-100
+      .login-container
+        h1.text-center.mb-4 Bienvenido a la clínica "O venís...o te morís"
+        h2.text-center.mb-4 Clínica - Agenda de consultorios
+        h2.text-center.mb-4 Iniciar Sesión
+        form(action="/auth/login", method="post")
+          .form-group
+            label(for="username") Nombre de usuario
+            input.form-control(type="text", name="username", required, placeholder="Ingrese su nombre de usuario")
+          .form-group
+            label(for="password") Contraseña
+            input.form-control(type="password", name="password", required, placeholder="Ingrese su contraseña")
+          if messages && messages.error
+            div.alert.alert-danger(role="alert")
+              | #{messages.error}
+          button.btn.btn-primary.btn-block(type="submit") Iniciar Sesión
+
+        .row.mt-4
+          .col-md-4
+            .card.mb-4.shadow-sm
+              img.card-img-top(src="registro.png", alt="Imagen de registro de paciente")
+              .card-body
+                h5.card-title.text-center Registro de Paciente
+                p.card-text.text-center Si no posee usuario como paciente, regístrese aquí.
+                .text-center
+                  a.btn.btn-primary(href="/auth/RegistroPacIndex") Registrarse
+          .col-md-4
+            .card.mb-4.shadow-sm
+              img.card-img-top(src="pacientesLogin.png", alt="Imagen de login para pacientes")
+              .card-body
+                h5.card-title.text-center Login para Pacientes
+                p.card-text.text-center Si ya está registrado, ingrese aquí como paciente.
+                .text-center
+                  a.btn.btn-primary(href="/auth/loginPac") Iniciar Sesión
+          .col-md-4
+            .card.mb-4.shadow-sm
+              img.card-img-top(src="medicos.png", alt="Imagen de login para médicos")
+              .card-body
+                h5.card-title.text-center Login para Médicos
+                p.card-text.text-center Si es médico, acceda aquí.
+                .text-center
+                  a.btn.btn-primary(href="/auth/logMedico") Iniciar Sesión
+                                    
+            script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")
+            link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css")
+
+            script(src="https://code.jquery.com/jquery-3.5.1.slim.min.js")
+            script(src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js")
+            script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")

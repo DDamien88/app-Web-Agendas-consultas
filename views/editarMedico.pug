@@ -1,0 +1,35 @@
+doctype html
+html
+    head
+        link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css")
+        title Editar Médico
+    body
+        .container.mt-5
+            h1.text-center Editar Médico
+            p.text-danger Campos obligatorios *
+            form(method="POST" action=`/medicos/editar/${medico.idMedico}`)
+                .mb-3
+                    label(for="nombre") Nombre *
+                    input.form-control(type="text" name="nombre" value=medico.nombre required)
+
+                .mb-3
+                    label(for="telefono") Teléfono *
+                    input.form-control(type="text" name="telefono" value=medico.telefono required)
+
+                .mb-3
+                    label(for="email") Email *
+                    input.form-control(type="email" name="email" value=medico.email required)
+
+                .mb-3
+                    label(for="ciudad") Ciudad donde reside *
+                    input.form-control(type="text" name="ciudad" value=medico.ciudad required)
+
+                .mb-3
+                    label(for="dniMedico") DNI *
+                    input.form-control(type="text" name="dniMedico" value=medico.dniMedico required)
+
+                .mt-4
+                    button.btn.btn-success(type="submit") Guardar Cambios
+                    a.btn.btn-secondary(href="/medicos") Cancelar
+
+        script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js")

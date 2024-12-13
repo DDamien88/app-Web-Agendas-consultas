@@ -1,0 +1,93 @@
+// dashboard.pug
+doctype html
+html(lang="es")
+    head
+        title Dashboard
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+        link(rel="stylesheet", href="/styles.css")
+        link(rel="icon" href="/icono.png" type="image/x-icon")
+    body
+        if user
+            h3 Usuario autenticado: #{user.username}, Rol: #{user.rol}
+        else
+            h3 No se encontró un usuario autenticado.
+
+        header(class="bg-primary text-white text-center py-4")
+            h1 Bienvenido al Dashboard
+
+        nav(class="navbar navbar-expand-lg navbar-light bg-light")
+            a(class="navbar-brand", href="#") Agendas de consultorios
+            button(class="navbar-toggler", type="button", data-toggle="collapse", data-target="#navbarNav", aria-controls="navbarNav", aria-expanded="false", aria-label="Toggle navigation")
+                span(class="navbar-toggler-icon")
+            div(class="collapse navbar-collapse", id="navbarNav")
+                ul(class="navbar-nav")
+                    if user && user.rol === 'admin'
+                        li(class="nav-item") 
+                            a(class="nav-link", href='/medicos') Médicos
+                        li(class="nav-item") 
+                            a(class="nav-link", href='/agendas') Administrar agendas
+                        li(class="nav-item") 
+                            a(class="nav-link", href='/agendas/especialidades') Administrar especialidades
+                        li(class="nav-item") 
+                            a(class="nav-link", href='/auth/register') Crear usuarios   
+                    else if user && user.rol === 'paciente'
+                        li(class="nav-item") 
+                            a(class="nav-link", href=`/pacientes/detalles/${idPaciente}`) Mis Datos
+                    else if user && user.rol === 'admisión'
+                        li(class="nav-item") 
+                            a(class="nav-link", href='/pacientes') Pacientes
+                        li(class="nav-item") 
+                            a(class="nav-link", href='/turnos') Turnos
+                    li(class="nav-item") 
+                        a(class="nav-link", href='/auth/logout') Cerrar Sesión
+
+        main(class="container mt-5")
+            if user && user.rol === 'admisión'
+                h2 Secretaria/o
+                p Aquí puedes ver un resumen de las actividades y datos importantes..
+                p Nombre Usuario: #{user.username}
+                section(class="mt-4")
+                    h3 Turnos
+                    ul(class="list-group")
+                        li(class="list-group-item")
+                            a(href="/horarios/libres") Buscar y reservar turnos
+                        li(class="list-group-item") 
+                            a(href="/turnos") Turnos dados / Reservados
+                        li(class="list-group-item") 
+                            a(href="/pacientes/listaEspera") Pacientes en lista de espera   
+                        li(class="list-group-item") 
+                            a(href="/auth/RegistroPacIndex") Registrar paciente
+
+            else if user && user.rol === 'paciente'
+                h2 Paciente
+                p Aquí puedes ver tu información personal y el listado de médicos.
+                p Nombre Usuario: #{user.username}
+                div(class="mt-4")
+                    ul(class="list-group")
+                        li(class="list-group-item") 
+                            a(href='/horarios/libresComoPac') Buscar turnos
+                section(class="mt-4")
+                    h3 Próximos Turnos y/o dados
+                        ul(class="list-group")
+                            if turnos && turnos.length > 0
+                                each turno in turnos
+                                    li(class="list-group-item") Fecha: #{turno.fecha} - Hora: #{turno.hora} con el médico: #{turno.nombreMedico} - :  #{turno.estado}
+                            else
+                                li(class="list-group-item") No tienes turnos asignados.
+            else if user && user.rol === 'medico'
+                h2 Médico
+                p Nombre Usuario: #{user.username}
+                div(class="mt-4")
+                    ul(class="list-group") 
+                        li(class="list-group-item") 
+                            a(href='/turnos/turnos-confirmados') Turnos Confirmados
+
+            else
+                h6 No tienes permisos para ver esta sección.
+
+        footer(class="text-center py-3 bg-light")
+            p &copy; 2024 Agendas de Consultas Médicas
+
+        script(src="https://code.jquery.com/jquery-3.5.1.slim.min.js")
+        script(src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js")
+        script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")

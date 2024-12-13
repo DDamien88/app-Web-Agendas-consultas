@@ -1,0 +1,121 @@
+doctype html
+html(lang="es")
+  head
+    title Editar Horarios Agenda
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+  body
+    .container
+      // Mostrar mensajes de éxito o error
+      if success
+        .alert.alert-success #{success}
+      if error
+        .alert.alert-danger #{error}
+
+      h1.text-center.mt-4 Editar Horarios Agenda
+      p.text-danger * Campos Obligatorios
+        form(action=`/agendas/editar/${agenda.idAgenda}` method="post")
+          input(type="hidden", name="idAgenda", value=agenda.idAgenda)
+
+          .form-group.text-center
+            h2 Agenda
+            label(for="agenda")
+              h3 #{agenda.nombreEspecialidad} - #{agenda.nombreMedico} - #{agenda.sucursal}
+
+          .form-group
+            label(for="fecha") Fecha en la que iniciarán nuevos horarios y/o reemplazarán los existentes *
+            input.form-control(type="date", name="fecha", value="#{agenda.fecha || ''}", required)
+
+          .form-group
+            label(for="dias") Duración de la Agenda (en días) *
+            input.form-control(type="number", name="dias", id="dias", min="1", value="#{agenda.dias || 1}", required)
+
+          .form-group
+            label Horarios por Día de la Semana * (Según necesite)
+            each dia, idx in ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+              .form-group
+                h5 #{dia}
+                .form-row
+                  .col
+                    label(for=`horaInicioManana${idx}`) Hora Inicio Mañana
+                    input.form-control(type="time", name=`horarios[${idx}][horaInicioManana]`, id=`horaInicioManana${idx}`, value="#{agenda.horarios[idx].horaInicioManana || ''}")
+                  .col
+                    label(for=`horaFinManana${idx}`) Hora Fin Mañana
+                    input.form-control(type="time", name=`horarios[${idx}][horaFinManana]`, id=`horaFinManana${idx}`, value="#{agenda.horarios[idx].horaFinManana || ''}")
+                  .col
+                    label(for=`horaInicioTarde${idx}`) Hora Inicio Tarde
+                    input.form-control(type="time", name=`horarios[${idx}][horaInicioTarde]`, id=`horaInicioTarde${idx}`, value="#{agenda.horarios[idx].horaInicioTarde || ''}")
+                  .col
+                    label(for=`horaFinTarde${idx}`) Hora Fin Tarde
+                    input.form-control(type="time", name=`horarios[${idx}][horaFinTarde]`, id=`horaFinTarde${idx}`, value="#{agenda.horarios[idx].horaFinTarde || ''}")
+
+          button.btn.btn-primary(type="submit") Actualizar horarios
+
+    script.
+      document.getElementById('idSucursal').addEventListener('change', function () {
+          const idSucursal = this.value;
+          const especialidadSelect = document.getElementById('idEspecialidad');
+          const medicoSelect = document.getElementById('idMedico');
+
+          // Limpia los select dependientes
+          especialidadSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+          especialidadSelect.disabled = true;
+          medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+          medicoSelect.disabled = true;
+
+          // Fetch de especialidades
+          fetch(`/horarios/especialidades?sucursal=${idSucursal}`)
+              .then(response => {
+                  if (!response.ok) {
+                      throw new Error(`Error HTTP: ${response.status}`);
+                  }
+                  return response.json();
+              })
+              .then(data => {
+                  especialidadSelect.innerHTML = '<option value="" disabled selected>Selecciona una especialidad</option>';
+                  especialidadSelect.disabled = false;
+
+                  // Rellenar el select con las especialidades
+                  data.forEach(especialidad => {
+                      const option = document.createElement('option');
+                      option.value = especialidad.idEspecialidad;
+                      option.textContent = especialidad.nombreEspecialidad;
+                      especialidadSelect.appendChild(option);
+                  });
+              })
+              .catch(error => {
+                  console.error('Error al cargar especialidades:', error);
+                  especialidadSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+              });
+      });
+
+      // Filtro de médicos por sucursal y especialidad
+      document.getElementById('idEspecialidad').addEventListener('change', function () {
+          const idSucursal = document.getElementById('idSucursal').value;
+          const idEspecialidad = this.value;
+          const medicoSelect = document.getElementById('idMedico');
+
+          // Limpia el select dependiente
+          medicoSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+          medicoSelect.disabled = true;
+
+          // Fetch de médicos
+          fetch(`/horarios/medicos?sucursal=${idSucursal}&especialidad=${idEspecialidad}`)
+              .then(response => response.json())
+              .then(data => {
+                  medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+                  medicoSelect.disabled = false;
+
+                  // Rellenar el select con los médicos
+                  data.forEach(medico => {
+                      const option = document.createElement('option');
+                      option.value = medico.idMedico;
+                      option.textContent = medico.nombre;
+                      medicoSelect.appendChild(option);
+                  });
+              })
+              .catch(error => {
+                  console.error('Error al cargar médicos:', error);
+                  medicoSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+              });
+      });

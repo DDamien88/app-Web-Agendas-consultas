@@ -1,0 +1,58 @@
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        title Formulario Reserva
+    body 
+        h1 Reserva de Turno
+            h2 Asignar Nuevo Turno
+
+            form(method="POST", action="/turnos/asignarPac")
+                div
+                    label(for="idMedico") Médico
+                    select(name="idMedico" required)
+                        option(value="") Seleccione un médico
+                        each medico in medicos
+                            option(value=medico.idMedico)= medico.nombre
+
+                div
+                    label(for="nombrePaciente") Nombre del Paciente
+                    input(type="text", name="nombrePaciente", required)
+
+                div
+                    label(for="fecha") Fecha
+                    input(type="text", name="fecha", value=formattedFecha, required)
+
+                div
+                    label(for="hora") Hora
+                    input(type="time", name="hora", value=hora, required)
+
+                div
+                    label(for="estado") Estado
+                    select(name="estado" required)
+                        option(value="Reservado") Reservado
+
+                div
+                    label(for="ciudad") Ciudad
+                    input(type="text", name="ciudad", required)
+
+                button(type="submit") Reservar Turno
+
+
+        script.
+            function buscarPaciente() {
+                const nombrePaciente = document.querySelector('input[name="nombrePaciente"]').value;
+                fetch(`/pacientes/buscar?nombre=${encodeURIComponent(nombrePaciente)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Aquí puedes procesar y mostrar los resultados, por ejemplo:
+                        if (data.pacientes.length > 0) {
+                            // Mostrar resultados de búsqueda (puedes usar un modal o una lista)
+                            console.log(data.pacientes);
+                        } else {
+                            alert('No se encontró ningún paciente.');
+                        }
+                    })
+                    .catch(error => console.error('Error al buscar paciente:', error));
+            }

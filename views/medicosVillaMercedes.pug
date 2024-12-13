@@ -1,0 +1,50 @@
+// - medicosVillaMercedes.pug
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        link(rel="stylesheet", href="/styles.css")
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+        title Listado de médicos Villa Mercedes
+    body 
+        h1 Listado de médicos Villa Mercedes
+        
+        h2 Médicos Particulares (Pacientes sin obra social)
+            if clasificacionPorEspecialidad && clasificacionPorEspecialidad.length > 0
+                table.tabla
+                    thead
+                        tr
+                            th Nombre
+                            th Especialidad
+                            th Asignar turno
+                    tbody
+                        each medico in clasificacionPorEspecialidad
+                            tr
+                                td #{medico.nombre}
+                                td #{medico.especialidades || 'Sin especialidades'}
+                                td
+                                    a(href=`/horarios/villa-mercedes/${medico.idMedico}`) Ver horarios disponibles
+            else
+                p No hay médicos que atiendan sin obra social registrados.
+
+
+
+        h2 Médicos por Especialidad
+            if clasificacionPorEspecialidad && clasificacionPorEspecialidad.length > 0
+                table.tabla
+                    thead
+                        tr
+                            th Nombre
+                            th Especialidad
+
+                            th Asignar turno
+                    tbody
+                        each medico in clasificacionPorEspecialidad
+                            tr
+                                td #{medico.nombre}
+                                td #{medico.especialidades || 'Sin especialidades'}
+                                td
+                                    a(href=`/horarios/villa-mercedes/${medico.idMedico}`) Ver horarios disponibles
+            else
+                p No hay médicos por especialidad registrados.

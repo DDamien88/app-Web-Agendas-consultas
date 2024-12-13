@@ -1,0 +1,28 @@
+//- views/crearTurno.pug
+doctype html
+html
+    head
+        title Crear Turno
+        link(rel="stylesheet", href="/styles.css")
+    body
+        h1 Crear Turno
+        form(action="/turnos/reservar", method="POST")
+            label(for="fecha") Fecha:
+            input(type="date", name="fecha", required)
+
+            label(for="horaInicio") Hora:
+            select(name="hora", required)
+                each horario in horarios
+                    option(value=horario.hora)= horario.hora
+
+            label(for="idMedico") Médico:
+            select(name="idMedico", required)
+                each medico in medicos
+                    option(value=medico.idMedico)= medico.nombre
+
+            label(for="idPaciente") Paciente:
+            select(name="idPaciente", required)
+                each paciente in pacientes
+                    option(value=paciente.idPaciente)= paciente.nombreCompleto
+
+            button(type="submit") Reservar Turno

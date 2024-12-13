@@ -1,0 +1,67 @@
+// planificarAgendaDos.pug
+doctype html
+html(lang="es")
+  head
+    title Planificar Horarios
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+  body
+    .container
+      if success
+        .alert.alert-success #{success}
+      if error
+        .alert.alert-danger #{error}
+
+      h1.text-center.mt-4 Planificación / Crear Horarios para una Agenda
+      p.text-danger * Campos Obligatorios
+
+      form(action="/horarios/planificar" method="post")
+        .form-group
+          label(for="agenda") Seleccionar Agenda *
+          select.form-control(name="agenda" id="agenda" required)
+            option(value="" disabled selected) Selecciona una agenda
+            each agenda in agendas
+              option(value=agenda.idAgenda) #{agenda.nombreEspecialidad} - #{agenda.nombreMedico} - #{agenda.sucursal}
+
+        .form-group
+          label(for="fecha") Fecha de Inicio *
+          input.form-control(type="date", name="fecha", id="fecha" required)
+
+        .form-group
+          label(for="dias") Duración de la Agenda (en días) *
+          input.form-control(type="number", name="dias", id="dias", min="1" required)
+
+        .form-group
+          label Horarios por Día de la Semana (Según corresponda)
+          each dia, idx in ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+            .form-group
+              h5 #{dia}
+              .form-row
+                .col
+                  label(for=`horaInicioManana${idx}`) Hora Inicio Mañana
+                  input.form-control(type="time", name=`horarios[${idx}][horaInicioManana]`, id=`horaInicioManana${idx}`)
+                .col
+                  label(for=`horaFinManana${idx}`) Hora Fin Mañana
+                  input.form-control(type="time", name=`horarios[${idx}][horaFinManana]`, id=`horaFinManana${idx}`)
+                .col
+                  label(for=`horaInicioTarde${idx}`) Hora Inicio Tarde
+                  input.form-control(type="time", name=`horarios[${idx}][horaInicioTarde]`, id=`horaInicioTarde${idx}`)
+                .col
+                  label(for=`horaFinTarde${idx}`) Hora Fin Tarde
+                  input.form-control(type="time", name=`horarios[${idx}][horaFinTarde]`, id=`horaFinTarde${idx}`)
+
+        button.btn.btn-primary.mt-4(type="submit") Generar Horarios
+
+    script.
+      // Validación dinámica para evitar enviar datos incompletos
+      const form = document.querySelector('form');
+      form.addEventListener('submit', function (e) {
+          const agenda = document.getElementById('agenda').value;
+          const fecha = document.getElementById('fecha').value;
+          const dias = document.getElementById('dias').value;
+
+          if (!agenda || !fecha || !dias) {
+              e.preventDefault();
+              alert('Por favor, completa todos los campos obligatorios.');
+          }
+      });

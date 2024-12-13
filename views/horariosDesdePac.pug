@@ -1,0 +1,81 @@
+//- views/horariosDesdePac.pug
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+        title Horarios del Médico
+    body
+        div#mensaje-container
+            if messages && messages.success
+                div.alert.alert-success #{messages.success}
+            if messages && messages.error
+                div.alert.alert-danger #{messages.error}
+    
+        h1.mt-3 Horarios del Médico #{nombreMedico}
+        
+        div.container.mt-3
+            table.table.table-striped
+                thead
+                    tr
+                        th Día
+                        th Hora Inicio
+                        th Hora Fin
+                        th Estado
+                        th Especialidad
+                        th Asignar Turno
+                        th Sobreturno
+                tbody
+                    each horario, index in horarios
+                        tr
+                            td #{horario.fechaFormateada}
+                            td #{horario.horaInicio}
+                            td #{horario.horaFin}
+                            td #{horario.estado}
+                            td #{horario.nombreEspecialidad}
+
+                            td
+                                if horario.bloqueado == 0
+                                    form(action="/turnos/asignarDesdePac", method="POST")
+                                        input(type="hidden", name="idHorario", value=horario.idHorario)
+                                        input(type="hidden", name="idMedico", value=horario.idMedico)
+                                        if usuarioLogueado && usuarioLogueado.idPaciente
+                                            input(type="hidden", name="idPaciente", value=usuarioLogueado.idPaciente)
+                                            button(type="submit", class="btn btn-primary") Asignar Turno
+                                        else
+                                            div.alert.alert-warning No se pudo encontrar el ID del paciente.
+                                            button(type="button" class="btn btn-secondary" disabled) Asignar Turno
+
+                                else
+                                    span(class="blocked") Horario Bloqueado
+                            
+                            td
+                                if index === horarios.length - 1 || horarios[index + 1].diaSemana !== horario.diaSemana
+                                    if horario.bloqueado === 0
+                                        form(action="/turnos/sobreturnoDesdePac", method="POST")
+                                            input(type="hidden", name="idMedico", value=horario.idMedico)
+                                            input(type="hidden", name="idHorario", value=horario.idHorario)
+                                            div.form-group
+                                                label(for="hora") Hora
+                                                input(type="time", name="hora", value=horario.hora, class="form-control")
+                                            div.form-group
+                                                label(for="fecha") Fecha
+                                                input(type="date", name="fecha", value=horario.fecha, class="form-control")
+                                            button(type="submit", class="btn btn-warning") Crear Sobreturno
+
+        //- Bootstrap Bundle con JavaScript para interactividad
+        script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")
+        //- Bootstrap Icons para iconos de campos
+        link(rel="stylesheet", href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css")
+
+        script(src="https://code.jquery.com/jquery-3.5.1.slim.min.js")
+        script(src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js")
+        script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
+
+        script.
+            const mensajeContainer = document.getElementById('mensaje-container');
+            if (mensajeContainer.children.length > 0) {
+                setTimeout(() => {
+                    mensajeContainer.innerHTML = ''; // Limpia los mensajes después de 5 segundos
+                }, 5000);
+            }

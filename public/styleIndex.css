@@ -1,0 +1,60 @@
+body {
+    background-color: rgb(208, 216, 215);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1,
+h2 {
+    color: #007bff;
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background-color: #f8f9fa;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+.navbar {
+    border-bottom: 1px solid #e7e7e7;
+    /* Línea de separación */
+    background-color: #ffffff;
+    /* Color de fondo */
+}
+
+.navbar-brand {
+    font-weight: bold;
+    text-align: center;
+}
+
+.nav-link {
+    padding: 15px;
+    /* Espaciado para los enlaces */
+    color: #333;
+    /* Color del texto */
+}
+
+.nav-link:hover {
+    background-color: #f1f1f1;
+    /* Fondo al pasar el mouse */
+}
+
+.dropdown-menu {
+    min-width: 200px;
+    /* Ancho mínimo del menú desplegable */
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+    /* Fondo al pasar el mouse en los elementos del menú */
+}

@@ -1,0 +1,57 @@
+doctype html
+html
+  head
+    title Página de Inicio
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    link(rel="stylesheet", href="/styleIndex.css")
+  body 
+    nav.navbar.navbar-expand-lg.navbar-light.bg-light.fixed-top
+      .container-fluid
+        a.navbar-brand(href='/') Agenda de Consultas Médicas
+        button.navbar-toggler(type='button', data-toggle='collapse', data-target='#navbarNav', aria-controls='navbarNav', aria-expanded='false', aria-label='Toggle navigation')
+          span.navbar-toggler-icon
+
+        #navbarNav.collapse.navbar-collapse
+          ul.navbar-nav
+            li.nav-item(class=(title == 'AgendasSL') ? 'active' : null)
+              a.nav-link(href='/PagAgendaSL') San Luis
+            li.nav-item(class=(title == 'AgendasVM') ? 'active' : null)
+              a.nav-link(href='/') Villa Mercedes
+          ul.navbar-nav.ml-auto
+            if user
+              li.nav-item.dropdown
+                a.nav-link.dropdown-toggle(href='#', id='navbarDropdown', role='button', data-toggle='dropdown', aria-haspopup='true', aria-expanded='false')
+                  span #{user.name || user.email}
+                .dropdown-menu(aria-labelledby='navbarDropdown')
+                  a.dropdown-item(href='/profile') Profile
+                  .dropdown-divider
+                  a.dropdown-item(href='/logout') Logout
+            else
+              li.nav-item(class=(title == 'Log in') ? 'active' : null)
+                a.nav-link(href='/login') Iniciar Sesión
+              li.nav-item(class=(title == 'Register') ? 'active' : null)
+                a.nav-link(href='/pacientes/registro') Registrarse como Paciente
+  
+
+    .container.mt-5
+      h1 Bienvenido a la Agenda de Consultas Médicas
+      p Esta es la página principal donde puedes gestionar las agendas de consultas médicas.
+      p Aquí podrás ver las agendas disponibles, registrarte como paciente.
+    
+      h2 Funcionalidades
+      ul
+        li Ver y gestionar las agendas de consultas
+        li Reservar turnos
+    
+      h2 Contacto
+      p Si tienes alguna pregunta, no dudes en contactarnos a través de nuestras redes.
+    
+      footer
+        p © 2024 Agenda de Consultas Médicas. D'Eramo Damián.
+
+        div 
+          a(href='/register') Registrarse
+
+    script(src='https://code.jquery.com/jquery-3.5.1.slim.min.js')
+    script(src='https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js')
+    script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js')

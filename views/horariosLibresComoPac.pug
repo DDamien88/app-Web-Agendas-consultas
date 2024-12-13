@@ -1,0 +1,288 @@
+// horariosLibresComoPac.pug
+doctype html
+html(lang="es")
+  head
+    title Horarios Disponibles
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js")
+    link(rel="stylesheet", href="/styleSobreTurno.css")
+    style.
+      .card {
+        margin: 0.5rem 0;
+        height: 169px;
+        overflow: hidden;
+      }
+      .card-body {
+        padding: 0.75rem;
+      }
+      .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+        text-align: center;
+      }
+      .card-text {
+        font-size: 0.875rem;
+        text-align: center;
+      }
+      .card-footer {
+        text-align: center;
+      }
+  body
+    .container
+      h1.text-center.mb-4 Horarios Disponibles
+
+      if success
+        .alert.alert-success #{success}
+      if error
+        .alert.alert-danger #{error}
+      a(href="/dashboard") Menú principal
+
+      form(action="/horarios/libresComoPac" method="post")
+        .form-row
+          .form-group.col-md-4
+            label(for="idSucursal") Seleccionar Sucursal *
+            select.form-control(name="idSucursal" id="idSucursal" required)
+              option(value="" disabled selected) Selecciona una sucursal
+              each sucursal in sucursales
+                option(value=sucursal.idSucursal selected=(filtros && filtros.idSucursal == sucursal.idSucursal)) #{sucursal.nombre}
+
+          .form-group.col-md-4
+            label(for="idEspecialidad") Seleccionar Especialidad *
+            select.form-control(name="idEspecialidad" id="idEspecialidad" required disabled=!(filtros && filtros.idSucursal))
+              option(value="" disabled selected) Selecciona una especialidad
+              each especialidad in especialidades
+                option(value=especialidad.idEspecialidad selected=(filtros && filtros.idEspecialidad == especialidad.idEspecialidad)) #{especialidad.nombreEspecialidad}
+
+          .form-group.col-md-4
+            label(for="idMedico") Seleccionar Médico *
+            select.form-control(name="idMedico" id="idMedico" required disabled=!(filtros && filtros.idEspecialidad))
+              option(value="" disabled selected) Selecciona un médico
+              each medico in medicos
+                option(value=medico.idMedico selected=(filtros && filtros.idMedico == medico.idMedico)) #{medico.nombre}
+
+        .form-row
+          .form-group.col-md-3
+            label(for="año") Año *
+            input.form-control(type="number", name="año", value=(filtros && filtros.año) || año, required)
+          .form-group.col-md-3
+            label(for="mes") Mes *
+            input.form-control(type="number", name="mes", value=(filtros && filtros.mes) || mes, min="1" max="12", required)
+        button.btn.btn-primary.btn-block(type="submit") Filtrar
+
+      // Mostrar horarios disponibles en un "calendario casero"
+      if horarios && horarios.length > 0
+        .row
+          each horario in horarios
+            .col-sm-6.col-md-4.col-lg-3 
+              .card
+                .card-body
+                  .card-title #{new Date(horario.fecha).toLocaleDateString('es-ES', { weekday: 'long' })}
+                  .card-text #{new Date(horario.fecha).toLocaleDateString('es-ES')}
+                  p Hora: #{horario.horaInicio} - #{horario.horaFin}
+                .card-footer
+                  button.btn.btn-primary(
+                    data-toggle="modal"
+                    data-target="#modalReservar"
+                    data-idhorario=`${horario.idHorario}`
+                    data-fecha=`${horario.fecha}`
+                    data-horainicio=`${horario.horaInicio}`
+                    data-horafin=`${horario.horaFin}`
+                    data-sobreturno="false"
+                  ) Reservar
+
+
+      else
+        p.text-center.mt-4 No hay horarios disponibles con los filtros seleccionados.
+
+      // Modal para reservar
+      .modal.fade#modalReservar(tabindex="-1" role="dialog" aria-labelledby="modalReservarLabel" aria-hidden="true")
+        .modal-dialog(role="document")
+          .modal-content
+            .modal-header
+              h5.modal-title#modalReservarLabel Seleccionar Paciente
+              button.close(type="button" data-dismiss="modal" aria-label="Close")
+                span(aria-hidden="true") &times;
+            .modal-body
+              .form-group
+                label(for="nombreCompleto") Nombre del Paciente
+                    input.form-control(type="text" id="nombreCompleto" value="#{usuarioAutenticado.nombreCompleto}" readonly)
+
+              .form-group.mt-3 
+              label(for="clasificacion") Clasificación
+              select.form-control(name="clasificacion" id="clasificacion") 
+                option(value="Normal") Normal 
+                option(value="Especial") Especial 
+                option(value="VIP") VIP
+            .modal-footer
+              button.btn.btn-secondary(data-dismiss="modal") Cerrar
+              button.btn.btn-primary Reservar
+
+    script.
+      document.getElementById('idSucursal').addEventListener('change', function () {
+        const idSucursal = this.value;
+        const especialidadSelect = document.getElementById('idEspecialidad');
+        const medicoSelect = document.getElementById('idMedico');
+
+        const idPacienteAutenticado = "#{usuarioAutenticado.idPaciente}";
+        const nombrePacienteAutenticado = "#{usuarioAutenticado.nombreCompleto || 'Nombre no disponible'}";
+        console.log("idPacienteAutenticado:", idPacienteAutenticado);
+        console.log("nombrePacienteAutenticado:", nombrePacienteAutenticado);
+                
+
+        // Limpia los select dependientes
+        especialidadSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+        especialidadSelect.disabled = true;
+        medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+        medicoSelect.disabled = true;
+
+        // Fetch de especialidades
+        fetch(`/horarios/especialidades?sucursal=${idSucursal}`)
+          .then(response => response.json())
+          .then(data => {
+            especialidadSelect.innerHTML = '<option value="" disabled selected>Selecciona una especialidad</option>';
+            especialidadSelect.disabled = false;
+
+            data.forEach(especialidad => {
+              const option = document.createElement('option');
+              option.value = especialidad.idEspecialidad;
+              option.textContent = especialidad.nombreEspecialidad;
+              especialidadSelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error al cargar especialidades:', error);
+            especialidadSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+          });
+      });
+
+      document.getElementById('idEspecialidad').addEventListener('change', function () {
+        const idSucursal = document.getElementById('idSucursal').value;
+        const idEspecialidad = this.value;
+        const medicoSelect = document.getElementById('idMedico');
+
+        // Limpia el select dependiente
+        medicoSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+        medicoSelect.disabled = true;
+
+        // Fetch de médicos
+        fetch(`/horarios/medicos?sucursal=${idSucursal}&especialidad=${idEspecialidad}`)
+          .then(response => response.json())
+          .then(data => {
+            medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+            medicoSelect.disabled = false;
+
+            data.forEach(medico => {
+              const option = document.createElement('option');
+              option.value = medico.idMedico;
+              option.textContent = medico.nombre;
+              medicoSelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error al cargar médicos:', error);
+            medicoSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+          });
+      });
+
+      // Cargar pacientes al abrir el modal
+        $('#modalReservar').on('show.bs.modal', function (event) {
+          const button = $(event.relatedTarget);
+          const idHorario = button.data('idhorario');
+          const fecha = new Date(button.data('fecha')).toLocaleDateString('es-ES');
+          const horaInicio = button.data('horainicio');
+          const horaFin = button.data('horafin');
+          const idPacienteAutenticado = "#{usuarioAutenticado.idPaciente}";
+          const nombrePacienteAutenticado = "#{usuarioAutenticado.nombreCompleto || 'Nombre no disponible'}" 
+
+
+          console.log("Fecha:", fecha);
+          console.log("Hora Inicio:", horaInicio);
+          console.log("idPacienteAutenticado:", idPacienteAutenticado);
+          console.log("Nombre del Paciente Autenticado:", nombrePacienteAutenticado);
+
+          // Verifica que no sean nulos
+          if (!fecha || !horaInicio) {
+              console.error('Error: fecha o horaInicio no están definidos en el botón.');
+          }
+
+          const modal = $(this);
+          modal.attr('data-idhorario', idHorario); 
+          modal.attr('data-fecha', fecha);
+          modal.attr('data-horainicio', horaInicio);
+          modal.attr('data-horafin', horaFin);
+          
+
+          modal.find('.modal-title').text(`Reservar: ${fecha} ${horaInicio} - ${horaFin}`);
+          modal.find('#nombreCompleto').val(nombrePacienteAutenticado);
+          modal.find('.modal-body #idHorario').val(idHorario);
+      });
+
+
+
+      document.querySelector('#modalReservar .btn-primary').addEventListener('click', function () {
+          const idMedico = document.getElementById('idMedico').value;
+          const fecha = document.querySelector('#modalReservar').getAttribute('data-fecha');
+          const idHorario = document.querySelector('#modalReservar').getAttribute('data-idhorario');
+          const horaInicio = document.querySelector('#modalReservar').getAttribute('data-horainicio');
+          const idPaciente = "#{usuarioAutenticado.idPaciente}";
+          //const idPaciente = document.querySelector('#listaPacientes .list-group-item.active').dataset.idPaciente;
+          const idSucursal = document.getElementById('idSucursal').value;
+          const clasificacion = document.getElementById('clasificacion').value;
+          //const idPaciente = idPacienteAutenticado || document.querySelector('#listaPacientes .list-group-item.active').dataset.idPaciente;
+
+          
+
+          console.log('idMedico:', idMedico);
+          console.log('fecha:', fecha);
+          console.log('horaInicio:', horaInicio);
+          console.log('idPaciente:', idPaciente);
+          console.log('idSucursal:', idSucursal);
+          console.log('clasificacion:', clasificacion);
+          console.log('idHorario:', idHorario);
+          console.log('idPaciente:', idPaciente);
+        
+
+
+          // Validar que todos los datos estén presentes
+          if (!idMedico || !fecha || !horaInicio || !idPaciente || !idSucursal || !clasificacion || !idHorario) {
+              alert('Por favor, complete todos los campos antes de reservar.');
+              return;
+          }
+
+          // Enviar la solicitud de reserva
+        fetch('/horarios/reservarComoPac', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idMedico, fecha, horaInicio, idPaciente, idSucursal, clasificacion, idHorario })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en el servidor. Código: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    alert(data.message || 'Reserva realizada con éxito.');
+                    $('#modalReservar').modal('hide');
+                    location.reload();
+                } else {
+                    alert(data.error || 'No se pudo realizar la reserva.');
+                }
+            })
+            .catch(error => {
+                console.error('Error en la solicitud:', error);
+                alert('Ocurrió un error inesperado. Por favor, inténtalo nuevamente.');
+            });
+      });
+
+
+
+          setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+              alert.style.transition = 'opacity 0.5s';
+              alert.style.opacity = 0;
+              setTimeout(() => alert.remove(), 500);
+            });
+          }, 3000);

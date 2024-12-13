@@ -1,0 +1,132 @@
+// turnos.pug
+doctype html
+html
+    head
+        title Lista y control de Turnos
+        link(rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+        link(rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css")
+        link(rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap5.min.css")
+        script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+        script(src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js")
+        script(src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap5.min.js")
+    body
+        div#alertContainer
+            if messages && messages.success
+                div.alert.alert-success #{messages.success}
+            if messages && messages.error
+                div.alert.alert-danger #{messages.error}
+
+        .container.my-5
+            a(href="/dashboard") Menú principal
+            br
+            a(href="/horarios/libres") Buscar y reservar turnos
+
+            h1.text-center.mb-4 Lista y control de Turnos
+
+            if turnos.length > 0
+                table#turnosTable.table.table-hover.table-striped
+                    thead
+                        tr.bg-primary.text-white
+                            th Fecha
+                            th Hora
+                            th Paciente
+                            th D.N.I.
+                            th Médico
+                            th Estado
+                            th Sobre Turno
+                            th Sucursal
+                            th Clasificación
+                            th Opciones
+                    tbody
+                        each turno in turnos
+                            tr
+                                td= turno.fechaFormateada
+                                td= turno.hora
+                                td= turno.paciente
+                                td= turno.dni
+                                td= turno.medico
+                                td= turno.estado
+                                td= turno.esSobreTurno ? 'Sí' : 'No'
+                                td= turno.sucursal
+                                td= turno.clasificacion
+                                td
+                                    if turno.idTurno
+                                        button(onclick=`cambiarEstado(${turno.idTurno}, 'cancelado')`) Cancelar
+                                        button(onclick=`cambiarEstado(${turno.idTurno}, 'confirmado')`) Confirmar
+                                        button(onclick=`cambiarEstado(${turno.idTurno}, 'atendido')`) Atendido
+                                    else
+                                        p.text-danger ID de turno no disponible
+            else
+                p.text-center.text-danger No hay turnos disponibles.
+
+        // Configuración de DataTables en español
+        script.
+            $(document).ready(function() {
+                $('#turnosTable').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.11.5/i18n/es-ES.json"
+                    },
+                    "pageLength": 10,
+                    "lengthMenu": [5, 10, 16, 20, 50],
+                    "order": [[ 0, "asc" ]]
+                });
+            });
+
+        script.
+            function cambiarEstado(idTurno, nuevoEstado) {
+                if (!idTurno) {
+                    console.error("ID de turno no definido");
+                    mostrarMensaje("ID de turno no definido", "alert-danger");
+                    return;
+                }
+
+                fetch(`/turnos/${idTurno}/cambiarEstado`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Error en la respuesta del servidor");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        mostrarMensaje(`Estado cambiado a ${nuevoEstado}`, "alert-success");
+                        window.location.reload();
+                    } else {
+                        mostrarMensaje(data.message || 'Error al cambiar el estado', "alert-danger");
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    mostrarMensaje('Error al realizar la solicitud', "alert-danger");
+                });
+            }
+
+            function mostrarMensaje(mensaje, tipo) {
+                const alertContainer = document.getElementById('alertContainer');
+                if (!alertContainer) {
+                    console.error("No se encontró el contenedor de alertas.");
+                    return;
+                }
+                
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${tipo} alert-dismissible fade show`;
+                alertDiv.role = 'alert';
+                alertDiv.innerHTML = `${mensaje}<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>`;
+                alertContainer.appendChild(alertDiv);
+                
+                setTimeout(() => {
+                    alertDiv.classList.remove('show');
+                    alertDiv.classList.add('fade');
+                    setTimeout(() => {
+                        alertDiv.remove();
+                    }, 5000);
+                }, 8000);
+            }
+
+        script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js")

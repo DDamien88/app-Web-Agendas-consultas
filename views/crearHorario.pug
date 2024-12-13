@@ -1,0 +1,85 @@
+// crearHorario.pug
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+        title Crear Horario
+
+    body
+        div.container.mt-3.mb-3.ml-3
+            a(href="/dashboard") Menú principal
+            
+        .container.mt-5.mb-5
+            h1.text-center Crear Nuevo Horario
+            div#mensaje-container
+                if success_msg.length > 0
+                    div.alert.alert-success(role="alert")
+                        | #{success_msg}
+                        
+                if error_msg.length > 0
+                    div.alert.alert-danger(role="alert")
+                        | #{error_msg}
+
+
+            form(action="/horarios/agregar" method="POST")
+                .form-group
+                    label(for="idMedico") Médico
+                    select(name="idMedico" id="idMedico" class="form-control" required)
+                        each medico in medicos
+                            option(value=medico.idMedico) #{medico.nombre}
+                
+                .form-group
+                    label(for="idEspecialidad") Especialidad
+                    select(name="idEspecialidad" id="idEspecialidad" class="form-control" required)
+                        each especialidad in especialidades
+                            option(value=especialidad.idEspecialidad) #{especialidad.nombreEspecialidad}
+                
+                .form-group
+                    label(for="diaSemana") Día de la Semana
+                    select(name="diaSemana" class="form-control" required)
+                        option(value="Lunes") Lunes
+                        option(value="Martes") Martes
+                        option(value="Miercoles") Miércoles
+                        option(value="Jueves") Jueves
+                        option(value="Viernes") Viernes
+
+                .form-group 
+                    label(for="fecha") Fecha
+                    input(type="date" name="fecha" class="form-control" required)
+                
+                .form-group
+                    label(for="horaInicio") Hora de Inicio
+                    input(type="time" name="horaInicio" class="form-control" required)
+                
+                .form-group
+                    label(for="horaFin") Hora de Fin
+                    input(type="time" name="horaFin" class="form-control" required)
+
+                .form-group
+                    label(for="estado") Estado
+                    select(name="estado" id="estado" class="form-control" required)
+                        option(value="libre") Libre
+
+                .form-group 
+                    label(for="ciudad") Ciudad
+                    select(name="ciudad" class="form-control" required) 
+                        option(value="San Luis") San Luis    
+                        option(value="Villa Mercedes") Villa Mercedes 
+
+                button(type="submit" class="btn btn-primary btn-block") Crear Horario
+
+        script(src="https://code.jquery.com/jquery-3.5.1.slim.min.js")
+        script(src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js")
+        script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js")
+            
+        
+        // - msg    
+        script.
+                const mensajeContainer = document.getElementById('mensaje-container');
+                if (mensajeContainer.children.length > 0) {
+                    setTimeout(() => {
+                        mensajeContainer.innerHTML = '';
+                    }, 5000);
+                }

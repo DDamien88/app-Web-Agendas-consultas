@@ -1,0 +1,141 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    title Crear Bloqueo en Agenda
+  body
+    .container.mt-5
+      .row.mb-4
+        .col.text-start
+          a.btn.btn-secondary(href="/dashboard") Menú principal
+        .col.text-center
+          a.btn.btn-secondary(href="/agendas") Ver agendas
+        .col.text-end
+          a.btn.btn-secondary(href="/agendas/bloqueos-agenda") Ver lista Bloqueos
+
+      if success_msg
+        .alert.alert-success(role="alert")= success_msg
+      if error_msg
+        .alert.alert-danger(role="alert")= error_msg
+
+      .card
+        .card-header.text-center
+          h2 Crear Bloqueo en Agenda
+          p.text-danger Campos obligatorios *
+        .card-body
+          form(action="/agendas/bloqueos-agenda/crear", method="POST", class="needs-validation", novalidate)
+            .mb-3
+              label(for="idMedico", class="form-label") Médico *
+              select.form-select(name="idMedico" id="idMedico" required)
+                option(value="" disabled selected) Seleccione un médico
+                each medico in medicos
+                  if medicoSeleccionado && medico.idMedico === medicoSeleccionado.idMedico
+                    option(value=medico.idMedico selected) #{medico.nombre}
+                  else
+                    option(value=medico.idMedico) #{medico.nombre}
+              .invalid-feedback Por favor, seleccione un médico.
+
+            .mb-3
+              label(for="idSucursal", class="form-label") Sucursal *
+              select.form-select(name="idSucursal" id="idSucursal" required disabled)
+                option(value="" disabled selected) Seleccione un médico primero
+              .invalid-feedback Por favor, seleccione una sucursal.
+
+            .mb-3
+              label(for="idAgenda", class="form-label") Agenda *
+              select.form-select(name="idAgenda" id="idAgenda" required disabled)
+                option(value="" disabled selected) Seleccione una sucursal primero
+              .invalid-feedback Por favor, seleccione una agenda.
+
+            .mb-3
+              label(for="fechaInicio", class="form-label") Fecha Inicio *
+              input.form-control(type="date", name="fechaInicio", id="fechaInicio", required)
+              .invalid-feedback Por favor, seleccione una fecha de inicio.
+
+            .mb-3
+              label(for="fechaFin", class="form-label") Fecha Fin *
+              input.form-control(type="date", name="fechaFin", id="fechaFin", required)
+              .invalid-feedback Por favor, seleccione una fecha de fin.
+
+            .mb-3
+              label(for="motivo", class="form-label") Motivo *
+              textarea.form-control(name="motivo" id="motivo" rows="3" required)
+              .invalid-feedback Por favor, indique el motivo del bloqueo.
+
+            button.btn.btn-primary(type="submit") Crear Bloqueo
+
+      script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js")
+
+    script.
+      // Validación y lógica adicional (tuya, ajustada al código final).
+
+      // Validación de formulario Bootstrap
+      (function () {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+
+        forms.forEach((form) => {
+          form.addEventListener(
+            'submit',
+            (event) => {
+              if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+              form.classList.add('was-validated');
+            },
+            false
+          );
+        });
+      })();
+
+      // Lógica para cargar sucursales
+      $('#idMedico').change(function () {
+        const idMedico = $(this).val();
+        const sucursalSelect = $('#idSucursal');
+
+        if (!idMedico) return;
+
+        sucursalSelect.html('<option value="" disabled selected>Cargando...</option>').prop('disabled', true);
+
+        fetch(`/agendas/api/medicos/${idMedico}/sucursales`)
+          .then((response) => response.json())
+          .then((sucursales) => {
+            sucursalSelect.html('<option value="" disabled selected>Seleccione una sucursal</option>');
+            sucursales.forEach((sucursal) => {
+              sucursalSelect.append(`<option value="${sucursal.idSucursal}">${sucursal.nombreSucursal}</option>`);
+            });
+            sucursalSelect.prop('disabled', false);
+          })
+          .catch((error) => {
+            console.error('Error al cargar sucursales:', error);
+            sucursalSelect.html('<option value="" disabled>Error al cargar sucursales</option>');
+          });
+      });
+
+      // Lógica para cargar agendas
+      $('#idSucursal').change(function () {
+        const idMedico = $('#idMedico').val();
+        const agendaSelect = $('#idAgenda');
+
+        if (!idMedico) return;
+
+        agendaSelect.html('<option value="" disabled selected>Cargando...</option>').prop('disabled', true);
+
+          fetch(`/agendas/api/sucursales/${idMedico}/agendas`)
+          .then((response) => response.json())
+          .then((agendas) => {
+            if (agendas.length === 0) {
+              agendaSelect.html('<option value="" disabled>No hay agendas disponibles</option>');
+            } else {
+              agendaSelect.html('<option value="" disabled selected>Seleccione una agenda</option>');
+              agendas.forEach((agenda) => {
+                agendaSelect.append(`<option value="${agenda.idAgenda}">${agenda.idAgenda}</option>`);
+              });
+            }
+            agendaSelect.prop('disabled', agendas.length === 0);
+          });
+      });

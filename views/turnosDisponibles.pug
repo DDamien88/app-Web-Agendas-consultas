@@ -1,0 +1,18 @@
+doctype html
+html
+    head
+        title Turnos Disponibles
+    body
+        h1 Turnos Disponibles para #{nombreMedico}
+        table
+            thead
+                tr
+                    th Día
+                    th Hora
+                    th Estado
+            tbody
+                each turno in turnos
+                    tr
+                        td= turno.dia
+                        td= turno.hora
+                        td= turno.estado

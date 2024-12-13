@@ -1,0 +1,456 @@
+// horariosLibres2.pug
+doctype html
+html(lang="es")
+  head
+    title Horarios Disponibles
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js")
+    link(rel="stylesheet", href="/styleSobreTurno.css")
+    style.
+      .card {
+        margin: 0.5rem 0;
+        width: 150px; 
+        height: 200px;
+        overflow: hidden;
+      }
+      .card-body {
+        padding: 0.75rem;
+      }
+      .card-title {
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+        text-align: center;
+      }
+      .card-text {
+        font-size: 0.875rem;
+        text-align: center;
+      }
+      .card-footer {
+        text-align: center;
+      }
+  body
+    .container
+      h1.text-center.mb-4 Horarios Disponibles
+      a(href="/turnos") Listado y control de turnos
+      br
+      a(href='/pacientes/lista-espera/registro') Entrar en lista de espera...
+      p.text-danger Campos Obligatorios *
+      p Primero seleccione sucursal
+
+      if success
+        .alert.alert-success #{success}
+      if error
+        .alert.alert-danger #{error}
+
+      form(action="/horarios/libres" method="post")
+        .form-row
+          .form-group.col-md-4
+            label(for="idSucursal") Seleccionar Sucursal *
+            select.form-control(name="idSucursal" id="idSucursal" required)
+              option(value="" disabled selected) Selecciona una sucursal
+              each sucursal in sucursales
+                option(value=sucursal.idSucursal selected=(filtros && filtros.idSucursal == sucursal.idSucursal)) #{sucursal.nombre}
+
+          .form-group.col-md-4
+            label(for="idEspecialidad") Seleccionar Especialidad *
+            select.form-control(name="idEspecialidad" id="idEspecialidad" required disabled=!(filtros && filtros.idSucursal))
+              option(value="" disabled selected) Selecciona una especialidad
+              each especialidad in especialidades
+                option(value=especialidad.idEspecialidad selected=(filtros && filtros.idEspecialidad == especialidad.idEspecialidad)) #{especialidad.nombreEspecialidad}
+
+          .form-group.col-md-4
+            label(for="idMedico") Seleccionar Médico *
+            select.form-control(name="idMedico" id="idMedico" required disabled=!(filtros && filtros.idEspecialidad))
+              option(value="" disabled selected) Selecciona un médico
+              each medico in medicos
+                option(value=medico.idMedico selected=(filtros && filtros.idMedico == medico.idMedico)) #{medico.nombre}
+
+        .form-row
+          .form-group.col-md-3
+            label(for="año") Año *
+            input.form-control(type="number", name="año", value=(filtros && filtros.año) || año, required)
+          .form-group.col-md-3
+            label(for="mes") Mes *
+            input.form-control(type="number", name="mes", value=(filtros && filtros.mes) || mes, min="1" max="12", required)
+        button.btn.btn-primary.btn-block(type="submit") Filtrar
+
+      // Mostrar horarios disponibles en un "calendario casero"
+      #contenedorSobreturnos
+      if horarios && horarios.length > 0
+        .row
+          each horario in horarios
+            .col-md-2
+              .card
+                .card-body
+                  .card-title #{new Date(horario.fecha).toLocaleDateString('es-ES', { weekday: 'long' })}
+                  .card-text #{new Date(horario.fecha).toLocaleDateString('es-ES')}
+                  p.text-center Hora: #{horario.horaInicio}
+                .card-footer
+                  button.btn.btn-primary.btn-sm(
+                    data-toggle="modal"
+                    data-target="#modalReservar"
+                    data-idhorario=`${horario.idHorario}`
+                    data-fecha=`${horario.fecha}`
+                    data-horainicio=`${horario.horaInicio}`
+                    data-horafin=`${horario.horaFin}`
+                    data-sobreturno="false"
+                  ) Reservar
+              // Botón para sobre turnos
+        .text-center.mt-3
+          button.mb-4.btn.btn-warning#solicitarSobreturnos(type="button") Mostrar Sobre turnos
+
+      else
+        p.text-center.mt-4 No hay horarios disponibles con los filtros seleccionados.
+
+        // Contenedor para los sobre turnos
+        #contenedorSobreturnos
+        // Mostrar sobre turnos si existen
+        if sobreturnos && sobreturnos.length > 0
+            .row
+              each turno in sobreturnos
+                .col-md-2
+                  .card
+                    .card-body
+                      .card-title #{new Date(turno.fecha).toLocaleDateString('es-ES', { weekday: 'long' })}
+                      .card-text #{new Date(turno.fecha).toLocaleDateString('es-ES')}
+                      p Hora: #{turno.horaInicio} - #{turno.horaFin}
+                    .card-footer
+                      button.btn.btn-primary(
+                        data-toggle="modal"
+                        data-target="#modalReservar"
+                        data-idhorario=`${turno.idHorario}`
+                        data-fecha=`${turno.fecha}`
+                        data-horainicio=`${turno.horaInicio}`
+                        data-horafin=`${turno.horaFin}`
+                        data-sobreturno="true"
+                      ) Reservar sobre turno
+
+      // Modal para reservar
+      .modal.fade#modalReservar(tabindex="-1" role="dialog" aria-labelledby="modalReservarLabel" aria-hidden="true")
+        .modal-dialog(role="document")
+          .modal-content
+            .modal-header
+              h5.modal-title#modalReservarLabel Seleccionar Paciente
+              button.close(type="button" data-dismiss="modal" aria-label="Close")
+                span(aria-hidden="true") &times;
+            .modal-body
+              .form-group
+                label(for="filtroPaciente") Buscar Paciente
+                input.form-control(type="text" id="filtroPaciente" placeholder="Nombre o DNI")
+              ul.list-group#listaPacientes
+                li.list-group-item.text-muted No se han cargado pacientes
+
+              .form-group.mt-3 
+              label(for="clasificacion") Clasificación
+              select.form-control(name="clasificacion" id="clasificacion") 
+                option(value="Normal") Normal 
+                option(value="Especial") Especial 
+                option(value="VIP") VIP
+            .modal-footer
+              button.btn.btn-secondary(data-dismiss="modal") Cerrar
+              button.btn.btn-primary Reservar
+
+    script.
+      document.getElementById('idSucursal').addEventListener('change', function () {
+        const idSucursal = this.value;
+        const especialidadSelect = document.getElementById('idEspecialidad');
+        const medicoSelect = document.getElementById('idMedico');
+
+        // Limpia los select dependientes
+        especialidadSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+        especialidadSelect.disabled = true;
+        medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+        medicoSelect.disabled = true;
+
+        // Fetch de especialidades
+        fetch(`/horarios/especialidades?sucursal=${idSucursal}`)
+          .then(response => response.json())
+          .then(data => {
+            especialidadSelect.innerHTML = '<option value="" disabled selected>Selecciona una especialidad</option>';
+            especialidadSelect.disabled = false;
+
+            data.forEach(especialidad => {
+              const option = document.createElement('option');
+              option.value = especialidad.idEspecialidad;
+              option.textContent = especialidad.nombreEspecialidad;
+              especialidadSelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error al cargar especialidades:', error);
+            especialidadSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+          });
+      });
+
+      document.getElementById('idEspecialidad').addEventListener('change', function () {
+        const idSucursal = document.getElementById('idSucursal').value;
+        const idEspecialidad = this.value;
+        const medicoSelect = document.getElementById('idMedico');
+
+        // Limpia el select dependiente
+        medicoSelect.innerHTML = '<option value="" disabled selected>Cargando...</option>';
+        medicoSelect.disabled = true;
+
+        // Fetch de médicos
+        fetch(`/horarios/medicos?sucursal=${idSucursal}&especialidad=${idEspecialidad}`)
+          .then(response => response.json())
+          .then(data => {
+            medicoSelect.innerHTML = '<option value="" disabled selected>Selecciona un médico</option>';
+            medicoSelect.disabled = false;
+
+            data.forEach(medico => {
+              const option = document.createElement('option');
+              option.value = medico.idMedico;
+              option.textContent = medico.nombre;
+              medicoSelect.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('Error al cargar médicos:', error);
+            medicoSelect.innerHTML = '<option value="" disabled>Error al cargar</option>';
+          });
+      });
+
+      // Cargar pacientes al abrir el modal
+        $('#modalReservar').on('show.bs.modal', function (event) {
+          const button = $(event.relatedTarget);
+          const idHorario = button.data('idhorario');
+          const fecha = new Date(button.data('fecha')).toLocaleDateString('es-ES');
+          const horaInicio = button.data('horainicio');
+          const horaFin = button.data('horafin');
+          const esSobreturno = button.data('sobreturno');
+
+          console.log("Es sobreturno:", esSobreturno);
+          console.log("Fecha:", fecha);
+          console.log("Hora Inicio:", horaInicio);
+          console.log("idHorario:", idHorario);
+
+          // Verifica que no sean nulos
+          if (!fecha || !horaInicio) {
+              console.error('Error: fecha o horaInicio no están definidos en el botón.');
+          }
+
+          const modal = $(this);
+          modal.attr('data-idhorario', idHorario); 
+          modal.attr('data-fecha', fecha);
+          modal.attr('data-horainicio', horaInicio);
+          modal.attr('data-horafin', horaFin);
+          modal.attr('data-sobreturno', esSobreturno);
+          
+
+          modal.find('.modal-title').text(`Reservar: ${fecha} ${horaInicio} - ${horaFin}`);
+          modal.find('.modal-body #idHorario').val(idHorario);
+          modal.find('.modal-title').text(`${esSobreturno ? 'Reservar sobre turno' : 'Reservar turno'}: ${fecha} ${horaInicio} - ${horaFin}`);
+      });
+
+
+
+          document.getElementById('filtroPaciente').addEventListener('input', function () {
+            const filtro = this.value.trim();
+
+            const listaPacientes = document.getElementById('listaPacientes');
+            listaPacientes.innerHTML = '';
+
+            if (!filtro) {
+                return;
+            }
+
+            // Fetch con el filtro ingresado
+            fetch(`/horarios/pacientes?filtro=${encodeURIComponent(filtro)}`)
+                .then(response => response.json())
+                .then(pacientes => {
+                    if (pacientes.length === 0) {
+                        listaPacientes.innerHTML = '<li class="list-group-item text-muted">No se encontraron pacientes</li>';
+                        return;
+                    }
+
+                    pacientes.forEach(paciente => {
+                        const item = document.createElement('li');
+                        item.className = 'list-group-item';
+                        item.textContent = `${paciente.nombreCompleto} - ${paciente.dni}`;
+                        item.dataset.idPaciente = paciente.idPaciente;
+                        listaPacientes.appendChild(item);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar pacientes:', error);
+                    listaPacientes.innerHTML = '<li class="list-group-item text-danger">Error al cargar pacientes</li>';
+                });
+        });
+
+
+        document.getElementById('listaPacientes').addEventListener('click', function (event) {
+          const item = event.target;
+
+          if (item.tagName === 'LI') {
+              const pacienteId = item.dataset.idPaciente;
+              const pacienteNombre = item.textContent;
+
+              this.querySelectorAll('li').forEach(li => li.classList.remove('active'));
+              item.classList.add('active');
+
+              console.log(`Paciente seleccionado: ID = ${pacienteId}, Nombre = ${pacienteNombre}`);
+          }
+      });
+
+
+      document.querySelector('#modalReservar .btn-primary').addEventListener('click', function () {
+          const idMedico = document.getElementById('idMedico').value;
+          const fecha = document.querySelector('#modalReservar').getAttribute('data-fecha');
+          const idHorario = document.querySelector('#modalReservar').getAttribute('data-idhorario');
+          const horaInicio = document.querySelector('#modalReservar').getAttribute('data-horainicio');
+          //const idPaciente = document.querySelector('#listaPacientes .list-group-item.active').dataset.idPaciente;
+          const idPacienteElement = document.querySelector('#listaPacientes .list-group-item.active');
+          const idSucursal = document.getElementById('idSucursal').value;
+          const clasificacion = document.getElementById('clasificacion').value;
+          const esSobreturno = document.querySelector('#modalReservar').getAttribute('data-sobreturno') === 'true';
+
+                // Validar si un paciente está seleccionado
+          if (!idPacienteElement) {
+              alert('Por favor seleccione un paciente antes de continuar.');
+              return;
+          }
+
+          const idPaciente = idPacienteElement.dataset.idPaciente;
+
+          console.log('idMedico:', idMedico);
+          console.log('fecha:', fecha);
+          console.log('horaInicio:', horaInicio);
+          console.log('idPaciente:', idPaciente);
+          console.log('idSucursal:', idSucursal);
+          console.log('clasificacion:', clasificacion);
+          console.log('idHorario:', idHorario);
+          console.log('Es sobre turno:', esSobreturno);
+
+
+          // Validar que todos los datos estén presentes
+          if (!idMedico || !fecha || !horaInicio || !idPaciente || !idSucursal || !clasificacion || !idHorario) {
+              alert('Por favor, complete todos los campos antes de reservar.');
+              return;
+          }
+
+          // Enviar la solicitud de reserva
+          fetch('/horarios/reservar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ idMedico, fecha, horaInicio, idPaciente, idSucursal, clasificacion, idHorario, esSobreturno })
+          })
+              .then(response => response.json())
+              .then(data => {
+                  if (data.success) {
+                      alert(data.message || 'Reserva realizada con éxito.');
+                      $('#modalReservar').modal('hide');
+                      location.reload();
+                  } else {
+                      alert(data.error || 'No se pudo realizar la reserva.');
+                  }
+              })
+              .catch(error => {
+                  console.error('Error en la solicitud:', error);
+                  alert('Ocurrió un error al realizar la reserva.');
+              });
+      });
+
+
+      //sobreTurnos
+      function validarFiltros() {
+        //const idSucursal = document.getElementById('idSucursal').value;
+        const idEspecialidad = document.getElementById('idEspecialidad').value;
+        const idMedico = document.getElementById('idMedico').value;
+        const año = document.querySelector('input[name="año"]').value;
+        const mes = document.querySelector('input[name="mes"]').value;
+
+        console.log({ idEspecialidad, idMedico, año, mes });
+
+        const botonSobreturnos = document.getElementById('solicitarSobreturnos');
+
+        // Verifica si todos los campos están llenos
+        if (idEspecialidad && idMedico && año && mes) {
+          botonSobreturnos.style.display = 'inline-block';
+        } else {
+          botonSobreturnos.style.display = 'none';
+        }
+      }
+
+      // Agregar eventos a los select y campos de año/mes para activar la validación
+      //document.getElementById('idSucursal').addEventListener('change', validarFiltros);
+      document.getElementById('idEspecialidad').addEventListener('change', validarFiltros);
+      document.getElementById('idMedico').addEventListener('change', validarFiltros);
+      document.querySelector('input[name="año"]').addEventListener('input', validarFiltros);
+      document.querySelector('input[name="mes"]').addEventListener('input', validarFiltros);
+
+      document.getElementById('solicitarSobreturnos').addEventListener('click', function () {
+        //const idSucursal = document.getElementById('idSucursal').value;
+        const idEspecialidad = document.getElementById('idEspecialidad').value;
+        const idMedico = document.getElementById('idMedico').value;
+        const año = document.querySelector('input[name="año"]').value;
+        const mes = document.querySelector('input[name="mes"]').value;
+
+        fetch(`/horarios/sobreturnos?especialidad=${idEspecialidad}&medico=${idMedico}&año=${año}&mes=${mes}`)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log('Datos recibidos:', data);
+
+            const contenedor = document.getElementById('contenedorSobreturnos');
+            contenedor.innerHTML = '';
+
+            if (data.sobreturnos && data.sobreturnos.length > 0) {
+              // Iterar sobre los grupos de sobreturnos
+              data.sobreturnos.forEach((grupo, index) => {
+                console.log(`Grupo ${index}:`, grupo);
+
+                grupo.forEach((turno) => {
+                  // Validar que el turno tenga las propiedades necesarias
+                  if (!turno.fecha || !turno.horaInicio || !turno.horaFin) {
+                    console.warn('Turno inválido o incompleto:', turno);
+                    return;
+                  }
+
+                  console.log('Turno recibido:', turno);
+
+                  // Parsear la fecha
+                  const fechaTurno = turno.fecha.includes('T') ? new Date(turno.fecha) : new Date(`${turno.fecha}T00:00:00`);
+
+                  const card = document.createElement('div');
+                  card.className = 'card';
+                  card.innerHTML = `
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">${fechaTurno.toLocaleDateString('es-ES', { weekday: 'long' })}</h5>
+                        <p class="card-text">${fechaTurno.toLocaleDateString('es-ES')}</p>
+                        <p>Hora: ${turno.horaInicio}</p>
+                      </div>
+                      <div class="card-footer">
+                        <button class="btn btn-primary" 
+                                data-toggle="modal" 
+                                data-target="#modalReservar"
+                                data-idhorario="${turno.idHorario}"
+                                data-fecha="${turno.fecha}"
+                                data-horainicio="${turno.horaInicio}"
+                                data-horafin="${turno.horaFin}"
+                                data-sobreturno="true">
+                          Reservar
+                        </button>
+                    </div>`;
+                  contenedor.appendChild(card);
+                });
+              });
+            } else {
+              contenedor.innerHTML = '<p class="text-center text-muted">No hay sobre turnos disponibles.</p>';
+              document.getElementById('solicitarSobreturnos').textContent = 'Sin Sobre turnos';
+            }
+          })
+          .catch((error) => {
+            console.error('Error al cargar sobre turnos:', error);
+            alert('Ocurrió un error al buscar sobre turnos.');
+          });
+      });
+
+          setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+              alert.style.transition = 'opacity 0.5s';
+              alert.style.opacity = 0;
+              setTimeout(() => alert.remove(), 500);
+            });
+          }, 3000);

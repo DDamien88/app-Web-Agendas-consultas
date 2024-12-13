@@ -1,0 +1,15 @@
+#contenedorSobreturnos {
+    display: grid;
+    grid-template-columns: 1fr 200px 1fr 1fr 1fr;
+    grid-template-rows: 2fr 100px;
+    grid-column-gap: 20px;
+    grid-row-gap: 20px;
+    justify-items: center;
+    align-items: center;
+}
+
+.cardSobreTurno {
+    width: 300px;
+    height: 300px;
+    overflow: hidden;
+}

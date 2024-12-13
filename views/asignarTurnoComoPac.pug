@@ -1,0 +1,23 @@
+doctype html
+html(lang="es")
+  head
+    title Asignar Turno
+  body
+    h1 Asignar Turno como paciente
+
+    if messages && messages.error
+      p.error= messages.error
+
+    form(action="/turnos/asignarComoTal", method="post")
+      div
+        label Fecha de Turno
+        input(type="date", name="fecha", required)
+      div
+        label Hora de Turno
+        input(type="time", name="hora", required)
+      div
+        label Motivo de Consulta
+        input(type="text", name="motivoConsulta")
+
+      div
+        button(type="submit") Asignar Turno

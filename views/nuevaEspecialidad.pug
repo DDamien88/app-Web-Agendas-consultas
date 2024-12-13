@@ -1,0 +1,19 @@
+doctype html
+html(lang="es")
+    head
+        title Nueva Especialidad
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    body
+        .container.mt-5
+            h1.text-center Agregar Especialidad
+
+            if error_msg
+              .alert.alert-danger(role="alert") #{error_msg}
+            if success_msg
+              .alert.alert-success(role="alert") #{success_msg}
+
+            form(action="/agendas/nuevaEspecialidad" method="post")
+                .form-group
+                    label(for="nombreEspecialidad") Nombre de la Especialidad
+                    input#nombreEspecialidad.form-control(type="text" name="nombreEspecialidad" required)
+                button.btn.btn-primary(type="submit") Crear Especialidad

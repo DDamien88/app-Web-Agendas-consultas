@@ -1,0 +1,8 @@
+.tachado {
+    text-decoration: line-through;
+    color: #888;                  
+}
+
+.table th, .table td {
+    vertical-align: middle;
+}

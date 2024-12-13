@@ -1,0 +1,126 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    link(rel="stylesheet", href="/styles.css")
+    link(rel="stylesheet", href="/styleRegistroListaEspera.css")
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    title Registro en Lista de Espera
+  body
+    .container.mt-4
+      // Mostrar alertas dinámicas
+      if alert
+        .alert(class=`alert-${alert.type}` role="alert")
+          | #{alert.message}
+
+      a(href="/dashboard") Menú principal
+      br
+      a(href="/pacientes/listaEspera") Ver Lista de espera
+      h1 Registro en la Lista de Espera
+      p.text-danger Campos obligatorios*
+
+      form(action='/pacientes/lista-espera', method='POST')
+        .form-group
+          label(for="idAgenda") Agendas*
+          select.form-control(name='idAgenda' id='idAgenda' required onchange="setSucursal(this)")
+            option(value="" disabled selected) Seleccione una agenda
+            each agenda in agendas
+              option(value=agenda.idAgenda data-sucursal=agenda.idSucursal) 
+                #{agenda.idAgenda} - #{agenda.nombreMedico} - #{agenda.especialidad} - #{agenda.sucursal}
+          input(type="hidden", id="idSucursal", name="idSucursal")
+
+
+        .form-group
+          label(for="pacienteSeleccionado") Paciente*
+          input.form-control(type="text", id="pacienteSeleccionado", name="pacienteSeleccionado", readonly required placeholder="Seleccione un paciente")
+          button.btn.btn-secondary(type="button", id="abrirModalPacientes") Buscar Paciente
+          input(type="hidden", id="idPaciente", name="idPaciente")
+
+        .form-group
+          label(for="motivoConsulta") Motivo de Consulta (opcional)
+          input.form-control(type='text', name='motivoConsulta', id='motivoConsulta')
+
+        button.btn.btn-primary(type='submit') Registrar en la lista de espera
+
+      // Modal para búsqueda de pacientes
+      .modal#modalPacientes(style="display: none;")
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h2.modal-title Buscar Paciente
+              button.btn-close(type="button", id="cerrarModalPacientes", aria-label="Close")
+            .modal-body
+              input.form-control(type="text", id="busquedaPaciente", placeholder="Buscar por nombre o DNI")
+              button.btn.btn-primary.mt-2(type="button", id="buscarPaciente") Buscar
+              table.table.mt-3#tablaPacientes
+                thead
+                  tr
+                    th Nombre Completo
+                    th DNI
+                    th Seleccionar
+                tbody
+                  // Contenido dinámico llenado con JavaScript
+            .modal-footer
+              button.btn.btn-secondary(type="button", id="cerrarModalPacientes") Cerrar
+
+    script.
+      $(document).ready(function () {
+        // Modal: Abrir
+        $('#abrirModalPacientes').click(function () {
+          $('#modalPacientes').fadeIn();
+        });
+
+        // Modal: Cerrar
+        $('#cerrarModalPacientes').click(function () {
+          $('#modalPacientes').fadeOut();
+        });
+
+        // Buscar pacientes por nombre o DNI
+        $('#buscarPaciente').click(function () {
+          const query = $('#busquedaPaciente').val();
+          fetch(`/pacientes/buscar?query=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+              const tbody = $('#tablaPacientes tbody');
+              tbody.empty();
+
+              data.forEach(paciente => {
+                const row = `
+                  <tr>
+                    <td>${paciente.nombreCompleto}</td>
+                    <td>${paciente.dni}</td>
+                    <td>
+                      <button 
+                        class="btn btn-primary seleccionarPaciente" 
+                        data-id="${paciente.idPaciente}" 
+                        data-nombre="${paciente.nombreCompleto}">
+                        Seleccionar
+                      </button>
+                    </td>
+                  </tr>
+                `;
+                tbody.append(row);
+              });
+            })
+            .catch(error => console.error('Error al buscar pacientes:', error));
+        });
+
+        // Seleccionar paciente desde la tabla
+        $('#tablaPacientes').on('click', '.seleccionarPaciente', function () {
+          const idPaciente = $(this).data('id');
+          const nombrePaciente = $(this).data('nombre');
+
+          $('#idPaciente').val(idPaciente);
+          $('#pacienteSeleccionado').val(nombrePaciente);
+
+          $('#modalPacientes').fadeOut();
+        });
+
+      });
+
+        function setSucursal(selectElement) {
+          const sucursal = selectElement.options[selectElement.selectedIndex].getAttribute("data-sucursal");
+          document.getElementById('idSucursal').value = sucursal;
+        }

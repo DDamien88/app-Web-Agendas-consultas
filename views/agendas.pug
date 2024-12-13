@@ -1,0 +1,124 @@
+// agendas.pug
+doctype html
+html(lang="es")
+  head
+    title Agendas Médicas
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css")
+    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js")
+    style.
+      .tachado {
+        text-decoration: line-through;
+        color: gray;
+      }
+
+  body
+    .container
+      h1.text-center.mt-3 Agendas Médicas
+      a(href="/dashboard") Menú principal 
+      br
+      a(href="/horarios/crear/agenda") Crear nueva agenda
+      br 
+      a(href="/agendas/bloqueos-agendas")  Bloqueo de agenda 
+      br
+      a(href="/horarios/planificar") Añadir turnos/horarios a agenda
+        
+        if success
+          .alert.alert-success #{success}
+        if error
+          .alert.alert-danger #{error}
+      
+      table.table.table-bordered.mt-4
+        thead
+          tr
+            th Agenda
+            th Médico
+            th Especialidad
+            th Activo
+            th Intervalos
+            th SobreTurnos
+            th Bloqueado
+            th Sucursal
+            th Acciones
+        tbody
+          each agenda in agendas
+            tr(class=agenda.activo ? '' : 'tachado') 
+              td #{agenda.idAgenda || 'ID no disponible'}
+              td #{agenda.nombreMedico}
+              td #{agenda.nombreEspecialidad}
+              td #{agenda.activo ? 'Sí' : 'No'}
+              td #{agenda.intervalos} min
+              td #{agenda.cantSobreTurnos}
+              td #{agenda.bloqueado ? 'Sí' : 'No'}
+              td #{agenda.nombreSucursal}
+              td
+                form(action=`/agendas/editar/${agenda.idAgenda}` method="get" style="display:inline-block;")
+                  button.btn.btn-warning.btn-sm(type="submit") Editar
+                form(action=`/agendas/eliminar/${agenda.idAgenda || ''}` method="post" style="display:inline-block;")
+                  button.btn.btn-danger.btn-sm(type="submit") Eliminar
+                if !agenda.activo
+                  form(action=`/agendas/activar/${agenda.idAgenda || ''}` method="post" style="display:inline-block;")
+                    button.btn.btn-success.btn-sm(type="submit") Activar
+
+        if agendas.length === 0
+          tr
+            td(colspan="8").text-center No hay agendas registradas.
+
+    each agenda in agendas
+      .modal.fade(id=`modalEditar-${agenda.idAgenda}`, tabindex="-1", aria-labelledby="modalEditarLabel", aria-hidden="true")
+        .modal-dialog
+          .modal-content
+            .modal-header
+              h5.modal-title Editar Agenda
+              button(type="button" class="close" data-dismiss="modal" aria-label="Close")
+                span(aria-hidden="true") &times;
+            .modal-body
+              form(action=`/agendas/editar/${agenda.idAgenda}` method="post")
+                .form-group
+                  label(for="fechaInicio") Fecha de Inicio
+                  input.form-control(type="date" name="fechaInicio" id="fechaInicio" value="#{agenda.fecha}" required)
+
+                .form-group
+                  label(for="horaInicio") Hora de Inicio
+                  input.form-control(type="time" name="horaInicio" id="horaInicio" value="#{agenda.horaInicio}" required)
+
+                .form-group
+                  label(for="horaFin") Hora de Fin
+                  input.form-control(type="time" name="horaFin" id="horaFin" value="#{agenda.horaFin}" required)
+
+                .form-group
+                  label(for="intervalos") Intervalos (minutos)
+                  input.form-control(type="number" name="intervalos" id="intervalos" value="#{agenda.intervalos}" required)
+
+                .form-group
+                  label(for="cantSobreTurnos") Cantidad de SobreTurnos
+                  input.form-control(type="number" name="cantSobreTurnos" id="cantSobreTurnos" value="#{agenda.cantSobreTurnos}" required)
+
+                .form-group
+                  label(for="bloqueado") Estado Bloqueado
+                  select.form-control(name="bloqueado" id="bloqueado" required)
+                    - var selectedNo = (agenda.bloqueado === 0) ? 'selected' : ''
+                    - var selectedYes = (agenda.bloqueado === 1) ? 'selected' : ''
+                    option(value="0", selected=selectedNo) No
+                    option(value="1", selected=selectedYes) Sí
+
+                .form-group
+                  label(for="diaSemana") Días de la Semana
+                  select.form-control(name="diaSemana" id="diaSemana" multiple required)
+                    - var diasSemana = Array.isArray(agenda.diaSemana) ? agenda.diaSemana : []
+                    - var selectedLunes = diasSemana.includes(1) ? 'selected' : ''
+                    - var selectedMartes = diasSemana.includes(2) ? 'selected' : ''
+                    - var selectedMiercoles = diasSemana.includes(3) ? 'selected' : ''
+                    - var selectedJueves = diasSemana.includes(4) ? 'selected' : ''
+                    - var selectedViernes = diasSemana.includes(5) ? 'selected' : ''
+                    - var selectedSabado = diasSemana.includes(6) ? 'selected' : ''
+                    - var selectedDomingo = diasSemana.includes(7) ? 'selected' : ''
+                    option(value="1", selected=selectedLunes) Lunes
+                    option(value="2", selected=selectedMartes) Martes
+                    option(value="3", selected=selectedMiercoles) Miércoles
+                    option(value="4", selected=selectedJueves) Jueves
+                    option(value="5", selected=selectedViernes) Viernes
+                    option(value="6", selected=selectedSabado) Sábado
+                    option(value="7", selected=selectedDomingo) Domingo
+                button.btn.btn-primary(type="submit") Guardar Cambios

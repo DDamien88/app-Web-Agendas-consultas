@@ -1,0 +1,46 @@
+doctype html
+html(lang="es")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        link(rel="stylesheet", href="/styles.css")
+        link(rel="stylesheet", href="/styleListaEspera.css")
+        title Lista de Espera
+    body
+        if alert
+            .alert(class=`alert-${alert.type}`) #{alert}
+
+        a(href="/dashboard") Menú principal
+        br
+        a(href="/pacientes/lista-espera/registro") Registrar un paciente en lista de espera
+        h1 Lista de espera
+        table
+            thead
+                tr
+                    th Paciente
+                    th D.N.I.
+                    th Médico
+                    th Especialidad
+                    th Motivo de Consulta
+                    th Fecha de Registro
+                    th Sucursal
+                    th Estado
+                    th Actualizar estado
+            tbody
+                each registro in listaEspera
+                    tr
+                        td #{registro.nombrePaciente || 'Sin Nombre'}
+                        td #{registro.dni}
+                        td #{registro.nombreMedico || 'Sin médico'}
+                        td #{registro.nombreEspecialidad || 'Sin especialidad'}
+                        td #{registro.motivoConsulta}
+                        td #{registro.fechaRegistro ? new Date(registro.fechaRegistro).toLocaleDateString('es-ES') : 'Sin fecha'}
+                        td #{registro.sucursal}
+                        td #{registro.estado}
+                        td 
+                            form(action='/pacientes/actualizarEstadoListaEspera' method='POST')
+                                input(type='hidden' name='idListaEspera' value=registro.idListaEspera)
+                                select(name='estado')
+                                    option(value='Pendiente' selected=registro.estado === 'Pendiente') Pendiente
+                                    option(value='Confirmado' selected=registro.estado === 'Confirmado') Confirmado
+                                button(type='submit') Actualizar

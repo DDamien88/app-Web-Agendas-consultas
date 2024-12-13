@@ -1,0 +1,49 @@
+doctype html
+html
+  head
+    title Editar Paciente
+    link(rel='stylesheet', href='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/styles.css')
+  body
+    .container.mt-4
+      .card
+        .card-header
+          h3 Editar Paciente
+          p.text-danger Campos obligatorios*
+        .card-body
+          form(action=`/pacientes/editar/${paciente.idPaciente}`, method='POST', enctype='multipart/form-data')
+            .form-group
+              label(for='nombreCompleto') Nombre Completo *
+              input.form-control(type='text', name='nombreCompleto', id='nombreCompleto', value=paciente.nombreCompleto, required)
+
+            .form-group
+              label(for='dni') DNI *
+              input.form-control(type='text', name='dni', id='dni', value=paciente.dni, required)
+
+            .form-group
+              label(for='motivoConsulta') Motivo de Consulta (opcional)
+              input.form-control(type='text', name='motivoConsulta', id='motivoConsulta', value=paciente.motivoConsulta || '')
+
+            .form-group
+              label(for='obraSocial') Obra Social *
+              input.form-control(type='text', name='obraSocial', id='obraSocial', value=paciente.obraSocial, required)
+
+            .form-group
+              label(for='datosContacto') Datos de Contacto *
+              input.form-control(type='text', name='datosContacto', id='datosContacto', value=paciente.datosContacto, required)
+
+            .form-group
+              label(for='documentoFotocopia') Documento Fotocopia *
+              if paciente.documentoFotocopia
+                p Archivo actual:
+                  a(href=`/uploads/${paciente.documentoFotocopia}`, target='_blank') Descargar Documento
+              input.form-control-file(type='file', name='documentoFotocopia', id='documentoFotocopia')
+
+            button.btn.btn-primary(type='submit') Actualizar Paciente
+
+          .mt-3
+          a.btn.btn-secondary(href='/pacientes') Volver a la lista de pacientes
+
+    script(src='https://code.jquery.com/jquery-3.5.1.slim.min.js')
+    script(src='https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js')
+    script(src='https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js')

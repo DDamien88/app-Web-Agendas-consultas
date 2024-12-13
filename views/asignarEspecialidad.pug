@@ -1,0 +1,34 @@
+doctype html
+html
+    head
+        link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css")
+        title Asignar Especialidad
+    body
+        .container.mt-5
+            h1.text-center Asignar Especialidad
+            p.text-center
+                | Asignar una nueva especialidad al médico 
+                strong= medico.nombre
+                p.text-danger.mark * Campos Obligatorios
+            
+            form(method="POST" action="/medicos/asignar-especialidad")
+                input(type="hidden" name="idMedico" value=medico.idMedico)
+
+                .mb-3
+                    label.form-label.text-danger(for="idEspecialidad") Especialidad *
+                    select.form-select(name="idEspecialidad" required)
+                        option(value="" disabled selected) Selecciona una especialidad
+                        each especialidad in especialidades
+                            option(value=especialidad.idEspecialidad) 
+                                = especialidad.nombreEspecialidad
+
+                .mb-3
+                    label.form-label.text-danger(for="idSucursal" required) Sucursal donde trabaja * - 1: San Luis - 2: Villa Mercedes
+                    input.form-control(type="text" name="idSucursal" placeholder="ID de la sucursal")
+
+                .mb-3
+                    label.form-label.text-danger(for="nroMatricula" required) Número de Matrícula *
+                    input.form-control(type="text" name="nroMatricula" placeholder="Número de matrícula")
+
+                button.btn.btn-primary(type="submit") Asignar Especialidad
+                a.btn.btn-secondary.ms-2(href="/medicos") Cancelar

@@ -1,0 +1,33 @@
+doctype html
+html(lang="es")
+    head
+        title Lista de Especialidades
+        link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+    body
+        .container.mt-5 
+            if success_msg
+                .alert.alert-success(role="alert") #{success_msg}
+            if error_msg
+                .alert.alert-danger(role="alert") #{error_msg}
+            a(href="/dashboard") Menú principal
+            h1.text-center Lista de Especialidades
+
+            .text-right.mb-3
+                a.btn.btn-primary(href="/agendas/nuevaEspecialidad") Nueva Especialidad
+
+            if especialidades && especialidades.length > 0
+                table.table.table-striped.table-bordered.ml-4.mr-4
+                    thead
+                        tr
+                            th Nombre de la Especialidad
+                            th Acciones
+                    tbody
+                        each especialidad in especialidades
+                            tr
+                                td= especialidad.nombreEspecialidad
+                                td
+                                    a.btn.btn-warning.btn-sm(href=`/agendas/especialidades/editar/${especialidad.idEspecialidad}`) Editar
+                                    form(action=`/agendas/especialidades/eliminar/${especialidad.idEspecialidad}` method="post" style="display:inline-block")
+                                        button.btn.btn-danger.btn-sm(type="submit" onclick="return confirm('¿Estás seguro de eliminar esta especialidad?')") Eliminar
+            else
+                p.text-center No hay especialidades registradas.

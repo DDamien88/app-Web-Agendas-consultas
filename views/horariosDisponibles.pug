@@ -1,0 +1,46 @@
+doctype html
+html(lang="es")
+  head
+    title Horarios Disponibles
+    link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css")
+  body
+    .container
+      h1.text-center Horarios Disponibles para Médico #{idMedico ? idMedico : 'Seleccione un Médico'}
+      
+      form(action="/horarios/disponibles" method="post")
+        .form-group
+            label(for="idMedico") Seleccionar Médico
+            select.form-control(name="idMedico" required)
+                option(value="" disabled selected) -- Seleccione un médico --
+                if medicos && medicos.length > 0
+                    each medico in medicos
+                        option(value=medico.idMedico) #{medico.nombre}
+                else
+                    option No hay médicos disponibles
+
+        .form-group
+            label(for="año") Año
+            input.form-control(type="number", name="año", value="#{año}", required)
+        .form-group
+        label(for="mes") Mes
+            input.form-control(type="number", name="mes", value="#{mes}", min="1" max="12", required)
+        
+        button.btn.btn-primary(type="submit") Ver Horarios
+
+      // Mostrar horarios solo si hay datos disponibles
+      if horariosDisponibles && horariosDisponibles.length > 0
+        h3.text-center Horarios de #{año} - #{mes}
+        table.table.table-bordered
+          thead
+            tr
+              th Día
+              th Día de la Semana
+              th Horario
+          tbody
+            each horario in horariosDisponibles
+              tr
+                td #{horario.fecha}
+                td #{horario.diaSemana == 0 ? 'Lunes' : horario.diaSemana == 2 ? 'Martes' : horario.diaSemana == 3 ? 'Miércoles' : horario.diaSemana == 4 ? 'Jueves' : horario.diaSemana == 5 ? 'Viernes' : horario.diaSemana == 6 ? 'Sábado' : 'Domingo'}
+                td #{horario.horaInicio} - #{horario.horaFin}
+      else
+        p No hay horarios disponibles para el médico en el mes seleccionado.

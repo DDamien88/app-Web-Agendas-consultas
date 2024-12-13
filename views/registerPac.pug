@@ -1,0 +1,25 @@
+doctype html
+html(lang="es")
+  head
+    title Registro
+    link(rel="stylesheet", href="/styles.css")
+  body
+    h1 Registro de Usuario como Paciente
+    form(action="/auth/registerComoPac", method="post")
+      div
+        label(for="nombre") Nombre Completo
+        input(type="text", name="nombre", required)
+      div
+        label(for="email") Email
+        input(type="email", name="email", required)
+      div
+        label(for="username") Nombre de Usuario
+        input(type="text", name="username", required)
+      div
+        label(for="password") Contraseña
+        input(type="password", name="password", required)
+      div
+        button(type="submit") Registrar
+
+      if messages && messages.error
+        p.error= messages.error

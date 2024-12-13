@@ -1,0 +1,40 @@
+doctype html
+html
+    head
+        title Configurar Horarios
+    body
+        h1 Configuración de Horarios para el Médico
+        form(action=`/horarios/guardar/${idMedico}`, method="POST")
+            label Día de la semana:
+            select(name="diaSemana")
+                option(value="Lunes") Lunes
+                option(value="Martes") Martes
+                option(value="Miércoles") Miércoles
+                option(value="Jueves") Jueves
+                option(value="Viernes") Viernes
+                option(value="Sábado") Sábado
+                option(value="Domingo") Domingo
+
+            label Hora de Inicio:
+            input(type="time", name="horaInicio", required)
+
+            label Hora de Fin:
+            input(type="time", name="horaFin", required)
+
+            label Duración (minutos):
+            input(type="number", name="duracion", required)
+
+            button(type="submit") Guardar Horarios
+
+            each horario in horarios
+            tr
+                td #{horario.diaSemana}
+                td #{horario.horaInicio} - #{horario.horaFin}
+                td #{horario.estado}
+                if horario.bloqueado
+                    td Horario bloqueado
+                else
+                    td
+                        form(action=`/horarios/bloquear/${horario.idHorario}`, method="POST")
+                            button(type="submit") Bloquear
+
