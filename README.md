@@ -111,3 +111,15 @@ Del 30 de Mayo al 20 de Junio
 Del 21 de Junio hacia adelante todavía no tiene planificado los horarios.
 
 Todo horario que no este entre las reglas definidas debe figurar como “horario no disponible” en la agenda del profesional. También debe mostrarse en las agendas los horarios marcados como “vacaciones”.
+
+***- Desarrollado con:***
+ - Node js
+    - Express
+    - Javascript
+    - CSS
+    - PUG
+    - Patrón de arquitectura MVC
+    - BD relacionales
+    - MySQL
+    - Express-session
+    - Passport-github2
